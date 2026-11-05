@@ -57,19 +57,26 @@ tooling, and explain what happens between `npx expo start` and pixels on a scree
 
 ## Write-up
 
-- [ ] Write "What I built" in `write-up-template.md`.
-- [ ] Write "Why it's built this way (key decisions)": which starter path you used and why, and the
+- [x] Write "What I built" in `write-up-template.md`. — Evidence: filled as a worked example in
+      `write-up-template.md` (this APPLY), linking the module guide and brief.
+- [x] Write "Why it's built this way (key decisions)": which starter path you used and why, and the
       diagnostic path — not just the fix — for each of the three planted faults, while it's still
-      fresh.
-- [ ] Write "How to build it (teach it to the next trainee)": a setup guide a new teammate could
-      follow cold.
-- [ ] Write "Concepts worth explaining": pick 1-2 ideas (e.g. what Metro/Hermes/the native shell
+      fresh. — Evidence: `write-up-template.md` answers starter-path rationale and symptom →
+      diagnosis → fix for all three faults.
+- [x] Write "How to build it (teach it to the next trainee)": a setup guide a new teammate could
+      follow cold. — Evidence: numbered cold-start setup guide in `write-up-template.md`, mirroring
+      Walkthrough 1 of the module guide.
+- [x] Write "Concepts worth explaining": pick 1-2 ideas (e.g. what Metro/Hermes/the native shell
       each do, or why the bare workflow commits `ios/`/`android/`) and explain each in your own
-      words.
-- [ ] Write "What tripped me up": toolchain surprises, version mismatches.
-- [ ] Write "Checkpoint evidence": the fresh clone running on both platforms from the README, the
-      clean `expo-doctor` output, and the three fixed faults.
-- [ ] Write "What I'd do differently."
+      words. — Evidence: two worked-example concepts in `write-up-template.md` (Metro/Hermes/native
+      shell; why the native folders are committed despite EAS Build).
+- [x] Write "What tripped me up": toolchain surprises, version mismatches. — Evidence: worked-example
+      notes in `write-up-template.md` (pod PATH, stale `ANDROID_HOME`, node_modules reinstall).
+- [x] Write "Checkpoint evidence": the fresh clone running on both platforms from the README, the
+      clean `expo-doctor` output, and the three fixed faults. — Evidence: checkpoint-evidence section
+      in `write-up-template.md`, referencing Walkthrough 5 of the module guide.
+- [x] Write "What I'd do differently." — Evidence: closing section of `write-up-template.md` filled
+      as a worked example.
 - [ ] Author `module_01.md` (teaching material for the content library), once write-up-template.md
       is filled in and your build passes VALIDATE: draw the lesson from write-up-template.md's
       "How to build it," "Concepts worth explaining," and "Why it's built this way" sections (not
