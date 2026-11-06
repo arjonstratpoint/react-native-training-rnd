@@ -18,11 +18,37 @@ Run for every significant file the plan will touch. State what else will be affe
 
 ### 2 — Write the implementation blueprint
 
+The deliverables are the three artifacts defined at EVALUATE: the instructional-material Markdown
+file, the filled-in write-up, and the module checklist.
+
+`modules/<module-folder>/module-<module-no.>-<module-title>.md`
+(e.g. `modules/m01-dev-environment-git-github/module-1-dev-environment-git-github.md`).
+
+The blueprint MUST:
+
+- Name that exact target path and list it under **Files created** (or **Files modified** if it
+  already exists — plan to edit, never to duplicate).
+- Also name `modules/<module-folder>/write-up-template.md` and list it under **Files modified** —
+  the plan must scope filling it in as a worked example (answer the template's own questions in
+  place, keep its title/description unchanged, and create no separate `write-up.md` or variant).
+- Also name `modules/<module-folder>/tasks.md` and list it under **Files modified** — the plan must
+  scope ticking it in place with per-item evidence for the work this task lands, preserving its
+  existing headings, section order, and untouched items. It is updated, never generated; if it is
+  absent, flag it and stop.
+- Lay out the section order to mirror `docs/reference/module-6-express-basics.docx`
+  (title block → Learning Goals → Concept → Read These → Walkthrough(s) → "What This Walkthrough
+  Showed You" → numbered EXERCISEs → Self-Check → Module Deliverable → Appendix answers).
+- Scope every step to producing or editing that file. No product code, no solution files.
+- Explicitly plan to show exact creation commands (`mkdir -p`, `touch`, `cat > ... << 'EOF' ... EOF`) with full sample content whenever files/directories are created.
+
 Structure the plan as numbered steps:
 
 ```
 PLAN
 ────
+Output artifact: modules/<folder>/module-<no.>-<title>.md
+Write-up:       modules/<folder>/write-up-template.md  (filled in as a worked example)
+Checklist:      modules/<folder>/tasks.md  (ticked item-by-item with evidence)
 1. <file or module> — <what changes and why>
 2. <file or module> — <what changes and why>
 ...
