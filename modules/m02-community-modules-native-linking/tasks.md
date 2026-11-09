@@ -43,17 +43,30 @@ best — and install and link a community module by hand.
 
 ## Write-up
 
-- [ ] Write "What I built" in `write-up-template.md`.
-- [ ] Write "Why it's built this way (key decisions)": for each of the three modules, what made you
-      confident (or not) it was safe to take on, and where autolinking needed help.
-- [ ] Write "How to build it (teach it to the next trainee)": a guide to linking a community native
-      module by hand, using one of your three modules as the worked example.
-- [ ] Write "Concepts worth explaining": pick 1-2 ideas (autolinking vs. manual linking, or judging
-      dependency safety) and explain each in your own words.
-- [ ] Write "What tripped me up": linking surprises, icon font gotchas, anything expo-doctor caught.
-- [ ] Write "Checkpoint evidence": all three modules working on both platforms, and the completed
-      lock-in audit.
-- [ ] Write "What I'd do differently."
+- [x] Write "What I built" in `write-up-template.md`. — Evidence: filled as a worked example in
+      `write-up-template.md` (this APPLY), linking the module guide, brief, lock-in audit and build
+      evidence.
+- [x] Write "Why it's built this way (key decisions)": for each of the three modules, what made you
+      confident (or not) it was safe to take on, and where autolinking needed help. — Evidence:
+      `write-up-template.md` answers all three module decisions and the iOS/Android resource-linking
+      gap.
+- [x] Write "How to build it (teach it to the next trainee)": a guide to linking a community native
+      module by hand, using one of your three modules as the worked example. — Evidence: eight-step
+      worked guide in `write-up-template.md` using `react-native-vector-icons` on both platforms.
+- [x] Write "Concepts worth explaining": pick 1-2 ideas (autolinking vs. manual linking, or judging
+      dependency safety) and explain each in your own words. — Evidence: two worked-example concepts
+      in `write-up-template.md` (autolinking vs. resource linking; the four dependency-safety
+      questions).
+- [x] Write "What tripped me up": linking surprises, icon font gotchas, anything expo-doctor caught.
+      — Evidence: worked-example notes in `write-up-template.md` (pod vs. `UIAppFonts`, stale
+      Android assets, missing `SafeAreaProvider`, late `expo-doctor` run).
+- [x] Write "Checkpoint evidence": all three modules working on both platforms, and the completed
+      lock-in audit. — Evidence: checkpoint list in `write-up-template.md` naming both build logs,
+      two platform screenshots and `docs/lock-in-audit.md` (filled by the learner in
+      Walkthrough 6).
+- [x] Write "What I'd do differently." — Evidence: closing section of `write-up-template.md` filled
+      as a worked example (audit skeleton first, evidence captured live, exit seams in the same
+      commit).
 - [ ] Author `module_02.md` (teaching material for the content library), once write-up-template.md
       is filled in and your build passes VALIDATE: draw the lesson from write-up-template.md's
       "How to build it," "Concepts worth explaining," and "Why it's built this way" sections (not
