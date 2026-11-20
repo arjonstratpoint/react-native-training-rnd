@@ -36,26 +36,26 @@ using EAS Build profiles instead of hand-editing Xcode schemes or Gradle flavors
 
 ## Write-up
 
-- [ ] Write "What I built" in `write-up-template.md`.
-- [ ] Write "Why it's built this way (key decisions)": how you structured `app.config.js` to vary
+- [x] Write "What I built" in `write-up-template.md`. — Evidence: `modules/m03-ios-android-project-internals/write-up-template.md` §"What I built".
+- [x] Write "Why it's built this way (key decisions)": how you structured `app.config.js` to vary
       identity by environment, what you put in `eas.json` versus `app.config.js`, and what you
-      found when you skimmed the native folders.
-- [ ] Write "How to build it (teach it to the next trainee)": a guide to standing up
+      found when you skimmed the native folders. — Evidence: `write-up-template.md` §"Why it's built this way (key decisions)".
+- [x] Write "How to build it (teach it to the next trainee)": a guide to standing up
       Dev/Staging/Prod as EAS build profiles that install side by side, using your own
-      `app.config.js`/`eas.json` as the worked example.
-- [ ] Write "Concepts worth explaining": pick 1-2 ideas (what an EAS build profile actually
+      `app.config.js`/`eas.json` as the worked example. — Evidence: `write-up-template.md` §"How to build it (teach it to the next trainee)".
+- [x] Write "Concepts worth explaining": pick 1-2 ideas (what an EAS build profile actually
       controls, or why native folders still need to be committed even though EAS does the
-      building) and explain each in your own words.
-- [ ] Write "What tripped me up": identity collisions between profiles, confusion about where
-      `app.config.js` vs. `eas.json` settings apply.
-- [ ] Write "Checkpoint evidence": all three builds installed side by side with distinct names and
-      icons.
-- [ ] Write "What I'd do differently."
-- [ ] Author `module_03.md` (teaching material for the content library), once write-up-template.md
+      building) and explain each in your own words. — Evidence: `write-up-template.md` §"Concepts worth explaining".
+- [x] Write "What tripped me up": identity collisions between profiles, confusion about where
+      `app.config.js` vs. `eas.json` settings apply. — Evidence: `write-up-template.md` §"What tripped me up".
+- [x] Write "Checkpoint evidence": all three builds installed side by side with distinct names and
+      icons. — Evidence: `write-up-template.md` §"Checkpoint evidence".
+- [x] Write "What I'd do differently." — Evidence: `write-up-template.md` §"What I'd do differently".
+- [x] Author `module_03.md` (teaching material for the content library), once write-up-template.md
       is filled in and your build passes VALIDATE: draw the lesson from write-up-template.md's
       "How to build it," "Concepts worth explaining," and "Why it's built this way" sections (not
       its "What tripped me up" / "What I'd do differently" narrative). Close the file with exactly
       5 open-ended comprehension questions — one per distinct concept (reuse concepts if fewer than
       5 distinct ones exist — never pad with an unrelated question to hit the count), never yes/no,
       never containing the answer — and an Understanding Checklist with one self-assessable item
-      per question.
+      per question. — Evidence: `modules/m03-ios-android-project-internals/module-3-ios-android-project-internals.md` (authored at the mandated path for `module_03.md`; 5 open-ended questions + 5-item Understanding Checklist; passed this VALIDATE run).
