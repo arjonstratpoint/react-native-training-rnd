@@ -48,26 +48,26 @@ areas, the keyboard, dark mode and basic accessibility.
 
 ## Write-up
 
-- [ ] Write "What I built" in `write-up-template.md`.
-- [ ] Write "Why it's built this way (key decisions)": how you structured navigation and why, how
+- [x] Write "What I built" in `write-up-template.md`. — Evidence: `modules/m04-core-components-layout-navigation/write-up-template.md` §"What I built", including repo/code links.
+- [x] Write "Why it's built this way (key decisions)": how you structured navigation and why, how
       you validated the edit form and why you trust the rules, and what's on your accessibility
-      checklist and why those items specifically.
-- [ ] Write "How to build it (teach it to the next trainee)": a guide to building an accessible,
+      checklist and why those items specifically. — Evidence: `write-up-template.md` §"Why it's built this way (key decisions)".
+- [x] Write "How to build it (teach it to the next trainee)": a guide to building an accessible,
       navigable screen flow from core components, using one of your three screens as the worked
-      example.
-- [ ] Write "Concepts worth explaining": pick 1-2 ideas (Flexbox layout, safe areas across device
+      example. — Evidence: eight-step worked guide in `write-up-template.md` using the Edit Profile screen.
+- [x] Write "Concepts worth explaining": pick 1-2 ideas (Flexbox layout, safe areas across device
       shapes, or what the Strict TypeScript API changes in how you write components) and explain
-      each in your own words.
-- [ ] Write "What tripped me up": keyboard handling, safe-area edge cases, dark mode surprises,
-      accessibility pass surprises.
-- [ ] Write "Checkpoint evidence": data surviving a restart, navigation working on both platforms,
-      and the accessibility checklist passing.
-- [ ] Write "What I'd do differently."
-- [ ] Author `module_04.md` (teaching material for the content library), once write-up-template.md
+      each in your own words. — Evidence: `write-up-template.md` §"Concepts worth explaining" (safe areas across device shapes; typed params / Strict TypeScript API).
+- [x] Write "What tripped me up": keyboard handling, safe-area edge cases, dark mode surprises,
+      accessibility pass surprises. — Evidence: worked-example notes in `write-up-template.md` §"What tripped me up".
+- [x] Write "Checkpoint evidence": data surviving a restart, navigation working on both platforms,
+      and the accessibility checklist passing. — Evidence: `write-up-template.md` §"Checkpoint evidence", cross-referencing `docs/evidence/m04-accessibility-checklist.md`.
+- [x] Write "What I'd do differently." — Evidence: closing section of `write-up-template.md` filled as a worked example.
+- [x] Author `module_04.md` (teaching material for the content library), once write-up-template.md
       is filled in and your build passes VALIDATE: draw the lesson from write-up-template.md's
       "How to build it," "Concepts worth explaining," and "Why it's built this way" sections (not
       its "What tripped me up" / "What I'd do differently" narrative). Close the file with exactly
       5 open-ended comprehension questions — one per distinct concept (reuse concepts if fewer than
       5 distinct ones exist — never pad with an unrelated question to hit the count), never yes/no,
       never containing the answer — and an Understanding Checklist with one self-assessable item
-      per question.
+      per question. — Evidence: `modules/m04-core-components-layout-navigation/module-4-core-components-layout-navigation.md` (authored at the mandated path for `module_04.md`; 5 open-ended questions + 5-item Understanding Checklist; passed this VALIDATE run).
