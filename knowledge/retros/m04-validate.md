@@ -33,7 +33,8 @@
   stack-constraints line in the next planner pass.
 - **SDK 58 compatibility is not explicitly confirmed upstream.** NativeWind's installation page
   names SDK 57 as the newest confirmed release for v4.2.7. The guide therefore pins
-  `nativewind@4.2.7` (v5 is an RC), installs through `npx expo install`, and requires
+  `nativewind@4.2.7` (v5 is an RC), installs through `npx expo install` (including
+  `react-native-worklets`, required by the SDK 58 Reanimated 4 line), and requires
   `npx expo-doctor` + `npx expo install --check` before the learner proceeds. Confirm the resolved
   versions for SDK 58 and freeze them for the next cohort.
 - **Keep the hybrid boundaries in mind for M09.** Static styling uses `className`, but dynamic

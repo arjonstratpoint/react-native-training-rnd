@@ -247,12 +247,13 @@ choice mid-lab; if the installed set cannot be made compatible, stop and report 
 ### Walkthrough 2 — Install NativeWind, wire the config, and prove it renders
 
 M02 already installed `react-native-safe-area-context`. NativeWind also wants
-`react-native-reanimated` and Tailwind CSS v3. Use Expo's installer so you never hand-pick native
-versions, then create the five config files.
+`react-native-reanimated`, which on the SDK 58 / Reanimated 4 line needs its
+`react-native-worklets` companion, plus Tailwind CSS v3. Use Expo's installer so you never hand-pick
+native versions, then create the five config files.
 
 ```bash
 cd ~/Projects/PersonalProfileApp
-npx expo install nativewind@4.2.7 react-native-reanimated react-native-safe-area-context
+npx expo install nativewind@4.2.7 react-native-reanimated react-native-worklets react-native-safe-area-context
 npx expo install --dev tailwindcss@^3.4.17
 touch global.css nativewind-env.d.ts
 cat > global.css << 'EOF'

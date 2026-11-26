@@ -74,14 +74,15 @@ it lives outside this repo, so it is named as a path rather than linked.
 Here is the worked example using **Edit Profile**, the screen with the most moving parts.
 
 1. **Install and configure NativeWind before writing any screens.** Use
-   `npx expo install nativewind@4.2.7 react-native-reanimated react-native-safe-area-context` and
+   `npx expo install nativewind@4.2.7 react-native-reanimated react-native-worklets react-native-safe-area-context` and
    `npx expo install --dev tailwindcss@^3.4.17`, then create `global.css` (three `@tailwind`
    directives), `nativewind-env.d.ts` (the triple-slash reference), `tailwind.config.js` (content
    globs, `nativewind/preset`, semantic colours as `rgb(var(--color-…) / <alpha-value>)`),
    `babel.config.js` (the `nativewind/babel` preset) and `metro.config.js` (`withNativeWind`). Set
    `userInterfaceStyle: automatic` in `app.json` and prove the setup with a temporary
    `className`-styled `App.tsx` before building anything else. Merge into existing configs rather
-   than deleting earlier presets.
+   than deleting earlier presets. `react-native-worklets` is in that same install command because
+   the Reanimated version Expo resolves for SDK 58 requires it as a companion package.
 2. **Write the data shape and the guarded storage layer first.** Define `Profile` as `{ name, email,
    phone, bio }` and an `emptyProfile` constant. In `profileStorage.ts`, use one versioned key
    (`m04:profile:v1`), wrap `getItem` + `JSON.parse` in `try/catch`, and coerce each field to a
