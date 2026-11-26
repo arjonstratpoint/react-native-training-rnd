@@ -92,8 +92,9 @@ scales (`p-4`, `gap-2`, `rounded-xl`) supply the rest of the token set.
 NativeWind turns `className="flex-1 items-center gap-2 p-4 bg-surface"` into React Native styles,
 so most static styling stays on the element instead of moving to a style object at the bottom of
 the file. The cost is real: a Babel preset, a Metro wrapper, a global CSS entry, a
-`nativewind-env.d.ts` type reference, and one more dependency to reconcile on every Expo SDK
-upgrade. The stable line at the time of writing is NativeWind v4.2.7, which uses Tailwind CSS v3,
+`nativewind-env.d.ts` type reference and CSS-module declaration, and one more dependency to
+reconcile on every Expo SDK upgrade. The stable line at the time of writing is NativeWind v4.2.7,
+which uses Tailwind CSS v3,
 the `nativewind/babel` preset and `withNativeWind(config, { input })`. v5 is a release candidate —
 do not switch the cohort to an RC on the day of the lab. Because the NativeWind docs last confirm
 SDK 57 support explicitly, install with `npx expo install`, run `npx expo-doctor`, and record the
@@ -263,6 +264,7 @@ cat > global.css << 'EOF'
 EOF
 cat > nativewind-env.d.ts << 'EOF'
 /// <reference types="nativewind/types" />
+declare module '*.css';
 EOF
 cat > tailwind.config.js << 'EOF'
 /** @type {import('tailwindcss').Config} */
