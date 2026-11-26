@@ -48,21 +48,21 @@ areas, the keyboard, dark mode and basic accessibility.
 
 ## Write-up
 
-- [x] Write "What I built" in `write-up-template.md`. — Evidence: `modules/m04-core-components-layout-navigation/write-up-template.md` §"What I built", including repo/code links.
+- [x] Write "What I built" in `write-up-template.md`. — Evidence: `modules/m04-core-components-layout-navigation/write-up-template.md` §"What I built", including repo/code links and the NativeWind config files named as inline paths.
 - [x] Write "Why it's built this way (key decisions)": how you structured navigation and why, how
       you validated the edit form and why you trust the rules, and what's on your accessibility
-      checklist and why those items specifically. — Evidence: `write-up-template.md` §"Why it's built this way (key decisions)".
+      checklist and why those items specifically. — Evidence: `write-up-template.md` §"Why it's built this way (key decisions)", including the NativeWind-vs-`StyleSheet` decision and its three hybrid boundaries.
 - [x] Write "How to build it (teach it to the next trainee)": a guide to building an accessible,
       navigable screen flow from core components, using one of your three screens as the worked
-      example. — Evidence: eight-step worked guide in `write-up-template.md` using the Edit Profile screen.
+      example. — Evidence: eight-step worked guide in `write-up-template.md` using the Edit Profile screen, now with NativeWind config, tokens and `className` steps.
 - [x] Write "Concepts worth explaining": pick 1-2 ideas (Flexbox layout, safe areas across device
       shapes, or what the Strict TypeScript API changes in how you write components) and explain
-      each in your own words. — Evidence: `write-up-template.md` §"Concepts worth explaining" (safe areas across device shapes; typed params / Strict TypeScript API).
+      each in your own words. — Evidence: `write-up-template.md` §"Concepts worth explaining" (NativeWind tradeoff against `StyleSheet`; safe areas across device shapes).
 - [x] Write "What tripped me up": keyboard handling, safe-area edge cases, dark mode surprises,
-      accessibility pass surprises. — Evidence: worked-example notes in `write-up-template.md` §"What tripped me up".
+      accessibility pass surprises. — Evidence: worked-example notes in `write-up-template.md` §"What tripped me up", including the missing `global.css` import and the native-bar theme surprise.
 - [x] Write "Checkpoint evidence": data surviving a restart, navigation working on both platforms,
-      and the accessibility checklist passing. — Evidence: `write-up-template.md` §"Checkpoint evidence", cross-referencing `docs/evidence/m04-accessibility-checklist.md`.
-- [x] Write "What I'd do differently." — Evidence: closing section of `write-up-template.md` filled as a worked example.
+      and the accessibility checklist passing. — Evidence: `write-up-template.md` §"Checkpoint evidence", cross-referencing the learner app's `docs/evidence/m04-accessibility-checklist.md` plus `npx expo install --check`.
+- [x] Write "What I'd do differently." — Evidence: closing section of `write-up-template.md` filled as a worked example, now including earlier NativeWind SDK compatibility verification.
 - [x] Author `module_04.md` (teaching material for the content library), once write-up-template.md
       is filled in and your build passes VALIDATE: draw the lesson from write-up-template.md's
       "How to build it," "Concepts worth explaining," and "Why it's built this way" sections (not
@@ -70,4 +70,4 @@ areas, the keyboard, dark mode and basic accessibility.
       5 open-ended comprehension questions — one per distinct concept (reuse concepts if fewer than
       5 distinct ones exist — never pad with an unrelated question to hit the count), never yes/no,
       never containing the answer — and an Understanding Checklist with one self-assessable item
-      per question. — Evidence: `modules/m04-core-components-layout-navigation/module-4-core-components-layout-navigation.md` (authored at the mandated path for `module_04.md`; 5 open-ended questions + 5-item Understanding Checklist; passed this VALIDATE run).
+      per question. — Evidence: `modules/m04-core-components-layout-navigation/module-4-core-components-layout-navigation.md` (authored at the mandated path for `module_04.md`; rewritten as the NativeWind-focused guide with exact config commands; 5 open-ended questions + 5-item Understanding Checklist).

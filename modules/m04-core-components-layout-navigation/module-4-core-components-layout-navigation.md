@@ -13,9 +13,13 @@ New Architecture always on · CocoaPods · Android `compileSdk` 37 / `targetSdk`
 install anything.** This guide was written against React Navigation 7.x; use `npx expo install`
 throughout so Expo picks SDK-compatible versions for you.
 
-**Styling:** `StyleSheet` plus a small set of design tokens is the default. NativeWind is an
-optional alternative only if your trainer confirms this cohort allows it; the checkpoint cares
-that the screens meet it, not which styling approach you used.
+**Styling:** this cohort uses **NativeWind** (Tailwind-style `className` utilities) as the default —
+`StyleSheet` is no longer the teaching approach. NativeWind adds a Babel preset, a Metro wrapper, a
+global CSS file and one dependency you track on every Expo SDK upgrade; that cost is accepted here
+for faster styling. The checkpoint does not care which styling approach you used — it cares that
+the screens work, scale and are accessible. A few places still need plain JS style objects
+(Safe-area numbers, pressed opacity, React Navigation's native bar colors); those boundaries are
+called out where they appear.
 
 By the end of this module your `PersonalProfileApp` will have three navigable screens, a working
 theme toggle, a validated edit form, profile data that survives an app restart, and a written
@@ -28,9 +32,11 @@ accessibility checklist with your results.
 By the end of this module you can:
 
 1. Build a screen from core components (`View`, `Text`, `Image`, `ScrollView`, `Pressable`,
-   `TextInput`, `FlatList`) and Flexbox layout with a small, consistent `StyleSheet` token set.
+   `TextInput`, `FlatList`) and Flexbox layout using NativeWind utility classes driven by one
+   small set of design tokens.
 2. Set up typed stack and tab navigation with React Navigation and its native dependencies, and
-   explain what each navigator owns.
+   explain what each navigator owns — including why React Navigation itself still needs JS style
+   objects.
 3. Keep content clear of unsafe areas and usable while the keyboard is open, on both platforms and
    on resized or foldable windows.
 4. Support dark mode and dynamic text size without a separate layout per theme.
@@ -58,39 +64,63 @@ the work in this module:
 
 Two rules save a lot of debugging. Only `Text` may contain text — a bare string inside a `View`
 throws. And a `ScrollView` that needs scrolling must have a bounded height; give its parent
-`flex: 1` or a fixed height.
+`flex: 1` or a fixed height. These rules are unchanged by the styling approach.
 
 `FlatList` is virtualised, which matters when lists are long. For the three-row facts list here it
 is used to teach the API, not for performance; M09 revisits the performance case at scale.
 
 ### Flexbox is the layout model, not CSS's full layout model
 
-React Native's default `flexDirection` is **`column`**, not `row`. A child with `flex: 1` takes the
-remaining space along the parent's main axis. `alignItems` works cross-axis, `justifyContent`
-works main-axis, `gap` spaces children, and there is no float, grid or percentage-height magic
-without a parent height. When something "looks wrong", first give the parent `flex: 1` and check
-which axis you are aligning on.
+React Native's default `flexDirection` is **`column`**, not `row`. A child with `flex-1` takes the
+remaining space along the parent's main axis. `items-center` works cross-axis, `justify-center`
+works main-axis, `gap-2` spaces children, and there is no float, grid or percentage-height magic
+without a parent height. NativeWind compiles these utilities to React Native style objects — it
+does not change the layout engine. When something "looks wrong", first give the parent `flex-1`
+and check which axis you are aligning on.
 
-Design tokens are just one small object of named values — colours, spacing and radii — consumed by
-`StyleSheet.create`. One place to change a colour beats editing 20 style literals when dark mode
-arrives.
+### Design tokens: one source, two consumers
 
-### NativeWind, if your trainer allows it
+With `StyleSheet` the token object is consumed directly by `StyleSheet.create`. With NativeWind the
+token values live in `src/theme/tokens.ts`, are exposed to Tailwind utility classes as CSS
+variables (for example `bg-primary`, `text-muted`, `border-border`), and are also handed to React
+Navigation as a plain JS palette. Change one colour in `tokens.ts` and both the classed screens and
+the navigator bars follow — no screen file needs editing. Default Tailwind spacing and radius
+scales (`p-4`, `gap-2`, `rounded-xl`) supply the rest of the token set.
 
-NativeWind gives Tailwind-style utility classes (`className="flex-1 bg-white p-4"`) and removes a
-lot of style boilerplate. It also adds a Babel/Metro config step and one more dependency to track
-on every Expo SDK upgrade. `StyleSheet` has none of that cost and is the course default. Learn the
-`StyleSheet` version first even if your cohort uses NativeWind, because the accessibility and
-layout ideas are the same either way.
+### What NativeWind buys and what it costs
+
+NativeWind turns `className="flex-1 items-center gap-2 p-4 bg-surface"` into React Native styles,
+so most static styling stays on the element instead of moving to a style object at the bottom of
+the file. The cost is real: a Babel preset, a Metro wrapper, a global CSS entry, a
+`nativewind-env.d.ts` type reference, and one more dependency to reconcile on every Expo SDK
+upgrade. The stable line at the time of writing is NativeWind v4.2.7, which uses Tailwind CSS v3,
+the `nativewind/babel` preset and `withNativeWind(config, { input })`. v5 is a release candidate —
+do not switch the cohort to an RC on the day of the lab. Because the NativeWind docs last confirm
+SDK 57 support explicitly, install with `npx expo install`, run `npx expo-doctor`, and record the
+versions Expo resolved for SDK 58. If the resolver cannot produce a compatible set, stop and
+confirm the trainer's pin instead of hand-picking versions.
+
+There are three boundaries where `className` is not the whole answer, and pretending otherwise
+produces mysterious bugs:
+
+1. **Dynamic numeric values** such as `insets.top + 16` or a pressed opacity cannot be static
+   classes. Use the `style` prop for those; NativeWind classes and `style` compose.
+2. **React Navigation's native bars** are configured with JS style objects (`headerStyle`,
+   `tabBarStyle`) and a JS theme object, not `className`. Read those values from the same token
+   palette.
+3. **Third-party native views** may not forward `className` to their underlying native view.
+   `GestureHandlerRootView` is kept with a plain `style={{ flex: 1 }}` here for that reason.
 
 ### Safe areas and window changes
 
 iOS reserves the top of the screen for the status bar, dynamic island and home indicator; Android
 can draw edge-to-edge with cutouts and a navigation bar. `SafeAreaProvider` from
-`react-native-safe-area-context` measures those insets, and `useSafeAreaInsets()` gives you the
-numbers to add as padding. Hard-coding a 44-pixel top padding breaks on a resizable iPhone window
-(iOS 27) and on a foldable where the window changes size mid-session — insets are the correct
-input because they are recomputed on change.
+`react-native-safe-area-context` measures those insets. NativeWind builds on that with utilities
+such as `pt-safe-offset-4` and `pb-safe-offset-6` (`env(safe-area-inset-*) + 1rem` / `+ 1.5rem`),
+while `useSafeAreaInsets()` still supplies the raw numbers where a prop needs them (for example
+`keyboardVerticalOffset`). Hard-coding a 44-pixel top padding breaks on a resizable iPhone window
+(iOS 27) and on a foldable where the window changes size mid-session; insets and the `*-safe-*`
+utilities are recomputed on change.
 
 ### Keyboard handling
 
@@ -100,7 +130,7 @@ while Android often needs `behavior="height"` or `undefined` with `keyboardVerti
 for your header. A `ScrollView` with `keyboardShouldPersistTaps="handled"` lets a tap on another
 field work instead of being swallowed by the first blur. Give the user an explicit way to dismiss
 the keyboard (`Keyboard.dismiss()`), and set `returnKeyType`/`onSubmitEditing` so the Next key
-moves focus down the form.
+moves focus down the form. None of these are styling props, so NativeWind does not change them.
 
 > API changes worth knowing: `InteractionManager` has been removed in this stack — do not reach
 > for it; use the `Keyboard` APIs and layout events instead. `ImageBackground` is deprecated; put
@@ -108,11 +138,17 @@ moves focus down the form.
 
 ### Dark mode and dynamic text
 
-`useColorScheme()` returns the system preference and updates when the user changes it. A theme
-context holds the chosen mode (`system`, `light` or `dark`) and exposes a palette; screens read the
-palette and never branch on platform. Dynamic text means leaving `allowFontScaling` on (the
-default), using `maxFontSizeMultiplier` where a large font would break a tight row, and testing
-with the OS text size turned up. A layout that only works at the default text size is not finished.
+NativeWind's `useColorScheme()` from `nativewind` reports the scheme and exposes
+`setColorScheme('system' | 'light' | 'dark')`. We keep our own `mode` state so the Settings toggle
+has an explicit System / Light / Dark value; an effect pushes that value into NativeWind, and the
+resolved value drives `themeVars(isDark)`. The CSS-variable palette makes every `bg-background`,
+`text-text` and `border-border` utility follow the theme, and the same resolved `isDark` selects
+the palette React Navigation uses. In Expo, system appearance only follows the OS when
+`userInterfaceStyle` is `automatic` in `app.json` — set it in Walkthrough 2.
+
+Dynamic text means leaving `allowFontScaling` on (the default), using `maxFontSizeMultiplier`
+where a large font would break a tight row, and testing with the OS text size turned up. A layout
+that only works at the default text size is not finished.
 
 ### React Navigation: stack, tabs and typed params
 
@@ -143,8 +179,9 @@ module uses five items:
 5. A screen-reader pass (VoiceOver on iOS, TalkBack on Android) can reach and activate every
    control, in a sensible order.
 
-VoiceOver is not available in the iOS Simulator; use Xcode's Accessibility Inspector there and a
-real device when you can. TalkBack can be enabled in an emulator's Accessibility settings.
+These are React Native props on the same components as before — NativeWind classes do not replace
+them. VoiceOver is not available in the iOS Simulator; use Xcode's Accessibility Inspector there
+and a real device when you can. TalkBack can be enabled in an emulator's Accessibility settings.
 
 ---
 
@@ -154,11 +191,20 @@ real device when you can. TalkBack can be enabled in an emulator's Accessibility
 - `docs/arch-docs/React Native Bare Workflow Curriculum — Solution Design.md` — the Module 4 row in
   Curriculum and Module Mapping (the checkpoint and the reusable checklist), the accessibility row
   in Testing and Assessment Strategy, and the technology baseline table (React Navigation is a
-  per-cohort pin).
+  per-cohort pin). The checkpoint is styling-agnostic; NativeWind is this cohort's chosen route to
+  meeting it.
 - `modules/m03-ios-android-project-internals/module-3-ios-android-project-internals.md` — the
   `PersonalProfileApp` and its three EAS profiles are your starting point.
 - `modules/m02-community-modules-native-linking/module-2-community-modules-native-linking.md` —
   where AsyncStorage and `react-native-safe-area-context` were installed and linked.
+- NativeWind docs: [installation](https://www.nativewind.dev/docs/getting-started/installation),
+  [dark mode](https://www.nativewind.dev/docs/core-concepts/dark-mode),
+  [useColorScheme()](https://www.nativewind.dev/docs/api/use-color-scheme),
+  [themes and CSS variables](https://www.nativewind.dev/docs/guides/themes),
+  [safe-area insets](https://www.nativewind.dev/docs/tailwind/new-concepts/safe-area-insets) and
+  [third-party components](https://www.nativewind.dev/docs/guides/third-party-components). Read the
+  installation page before installing: it states which NativeWind and Tailwind majors are stable
+  and which Expo SDK versions are confirmed.
 - React Navigation docs: [getting started](https://reactnavigation.org/docs/getting-started/),
   [native stack navigator](https://reactnavigation.org/docs/native-stack-navigator/),
   [bottom tabs](https://reactnavigation.org/docs/bottom-tab-navigator/) and
@@ -166,12 +212,9 @@ real device when you can. TalkBack can be enabled in an emulator's Accessibility
   page also lists the Android native tweaks required by the pinned major — read them before
   assuming none are needed.
 - React Native docs: [KeyboardAvoidingView](https://reactnative.dev/docs/keyboardavoidingview),
-  [TextInput](https://reactnative.dev/docs/textinput),
-  [FlatList](https://reactnative.dev/docs/flatlist) and
-  [accessibility](https://reactnative.dev/docs/accessibility).
-- Storage and insets:
-  [AsyncStorage repository](https://github.com/react-native-async-storage/async-storage) and
-  [react-native-safe-area-context](https://github.com/appandflow/react-native-safe-area-context).
+  [TextInput](https://reactnative.dev/docs/textinput), [FlatList](https://reactnative.dev/docs/flatlist)
+  and [accessibility](https://reactnative.dev/docs/accessibility).
+- Storage: [AsyncStorage repository](https://github.com/react-native-async-storage/async-storage).
 - `docs/reference/module-6-express-basics.docx` is the stated primary format reference but is not
   present in this repo. The M01–M03 module guides supply the section pattern instead.
 
@@ -183,7 +226,7 @@ Do these in order. Each step has a **Check** that proves it worked before you mo
 `cat > … << 'EOF'` block writes a complete file — copy the whole block, including the closing
 `EOF`.
 
-### Walkthrough 1 — Lock the baseline and confirm the two cohort decisions
+### Walkthrough 1 — Lock the baseline and confirm the React Navigation major
 
 ```bash
 cd ~/Projects/PersonalProfileApp
@@ -194,50 +237,140 @@ ls -d ios android
 ```
 
 **Check:** `node -v` prints `v24.x`; `ios` and `android` exist; `npx expo-doctor` reports no errors;
-`git status` is clean or shows only intended M03 work. Before continuing, ask your trainer two
-questions and write the answers into your notes:
-
-1. Which React Navigation major is pinned for this cohort? (This guide was written for 7.x.)
-2. Is NativeWind allowed in place of `StyleSheet` for this module?
-
-If the answer to (2) is yes, follow your trainer's NativeWind setup and keep the same component and
-accessibility structure — only the styling syntax changes. The walkthroughs below use `StyleSheet`.
+`git status` is clean or shows only intended M03 work. Ask your trainer one question and write the
+answer into your notes: **which React Navigation major is pinned for this cohort?** (This guide was
+written for 7.x.) NativeWind is already decided for this cohort — do not re-litigate the styling
+choice mid-lab; if the installed set cannot be made compatible, stop and report it.
 
 ---
 
-### Walkthrough 2 — Install navigation packages and create the folder skeleton
+### Walkthrough 2 — Install NativeWind, wire the config, and prove it renders
 
-M02 already installed AsyncStorage and `react-native-safe-area-context`. Install navigation and its
-native dependencies with Expo's installer so you never hand-pick versions:
+M02 already installed `react-native-safe-area-context`. NativeWind also wants
+`react-native-reanimated` and Tailwind CSS v3. Use Expo's installer so you never hand-pick native
+versions, then create the five config files.
 
 ```bash
 cd ~/Projects/PersonalProfileApp
-npx expo install @react-navigation/native @react-navigation/native-stack @react-navigation/bottom-tabs react-native-screens react-native-gesture-handler
-npx expo install expo-constants
-mkdir -p src/navigation src/screens src/theme src/storage src/types docs/evidence
-touch src/navigation/.gitkeep src/screens/.gitkeep src/theme/.gitkeep src/storage/.gitkeep src/types/.gitkeep docs/evidence/.gitkeep
-npx expo-doctor
-ls src
+npx expo install nativewind@4.2.7 react-native-reanimated react-native-safe-area-context
+npx expo install --dev tailwindcss@^3.4.17
+touch global.css nativewind-env.d.ts
+cat > global.css << 'EOF'
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+EOF
+cat > nativewind-env.d.ts << 'EOF'
+/// <reference types="nativewind/types" />
+EOF
+cat > tailwind.config.js << 'EOF'
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ['./App.tsx', './src/**/*.{js,jsx,ts,tsx}'],
+  presets: [require('nativewind/preset')],
+  theme: {
+    extend: {
+      colors: {
+        background: 'rgb(var(--color-background) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        text: 'rgb(var(--color-text) / <alpha-value>)',
+        muted: 'rgb(var(--color-textMuted) / <alpha-value>)',
+        primary: 'rgb(var(--color-primary) / <alpha-value>)',
+        border: 'rgb(var(--color-border) / <alpha-value>)',
+        danger: 'rgb(var(--color-danger) / <alpha-value>)',
+      },
+    },
+  },
+  plugins: [],
+};
+EOF
+cat > babel.config.js << 'EOF'
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: [
+      ['babel-preset-expo', { jsxImportSource: 'nativewind' }],
+      'nativewind/babel',
+    ],
+  };
+};
+EOF
+cat > metro.config.js << 'EOF'
+const { getDefaultConfig } = require('expo/metro-config');
+const { withNativeWind } = require('nativewind/metro');
+
+const config = getDefaultConfig(__dirname);
+
+module.exports = withNativeWind(config, { input: './global.css' });
+EOF
 ```
 
-If your M02 install is missing either storage package, add it now with
-`npx expo install @react-native-async-storage/async-storage react-native-safe-area-context`.
+If your project already has a `babel.config.js` or `metro.config.js` with extra presets, plugins or
+resolver settings from M01–M03, **merge** the NativeWind preset / wrapper into that file instead of
+dropping the existing entries. The blocks above are the complete minimal versions for a fresh
+config. Also make sure `app.json` has `userInterfaceStyle` set to `automatic` under `expo`, or the
+System theme option will not follow the OS. If it is missing, add `"userInterfaceStyle":
+"automatic"` under the `expo` key in `app.json` — do not replace the rest of the file:
 
-**Check:** `ls src` lists `navigation screens storage theme types`; `npx expo-doctor` reports no
-errors. Read the "Installing dependencies" and Android notes on the React Navigation getting-started
-page for the major your trainer pinned — some versions require a small `MainActivity` / manifest
-change, and doing it now avoids a confusing crash later.
+```bash
+cd ~/Projects/PersonalProfileApp
+npx expo config --type public | grep userInterfaceStyle
+```
+
+Now a temporary smoke test — we will overwrite `App.tsx` with the real root in Walkthrough 4:
+
+```bash
+cd ~/Projects/PersonalProfileApp
+cat > App.tsx << 'EOF'
+import 'react-native-gesture-handler';
+import './global.css';
+import React from 'react';
+import { Text, View } from 'react-native';
+
+export default function App() {
+  return (
+    <View className="flex-1 items-center justify-center bg-white">
+      <Text className="text-xl font-bold text-blue-600">NativeWind is ready</Text>
+    </View>
+  );
+}
+EOF
+npx expo-doctor
+npx expo start -c
+```
+
+**Check:** `npx expo-doctor` reports no errors; after a cache-cleared start the app shows large,
+bold, blue, centred text on white. That proves `className` is being compiled — a plain white
+screen with unstyled black text means the Babel preset, Metro wrapper or global CSS import is
+missing. Record the installed versions (`npx expo install --check`) in your notes; they are the
+versions the rest of this module assumes. Stop the smoke-test server with Ctrl+C before continuing;
+Walkthrough 7 starts a fresh dev-client server.
 
 ---
 
 ### Walkthrough 3 — Design tokens and a typed theme context
 
-Create the token object first:
+Create the token module first. It is the one place where colours are defined; Tailwind reads them
+through CSS variables and the navigator reads the same object as a JS palette:
 
 ```bash
 cd ~/Projects/PersonalProfileApp
+mkdir -p src/theme src/navigation src/screens src/storage src/types docs/evidence
+touch src/navigation/.gitkeep src/screens/.gitkeep src/storage/.gitkeep src/types/.gitkeep docs/evidence/.gitkeep
 cat > src/theme/tokens.ts << 'EOF'
-export const tokens = {
+import { vars } from 'nativewind';
+
+export type Palette = {
+  background: string;
+  surface: string;
+  text: string;
+  textMuted: string;
+  primary: string;
+  border: string;
+  danger: string;
+};
+
+export const palettes: Record<'light' | 'dark', Palette> = {
   light: {
     background: '#FFFFFF',
     surface: '#F3F4F6',
@@ -256,23 +389,44 @@ export const tokens = {
     border: '#4B5563',
     danger: '#FCA5A5',
   },
-  spacing: { xs: 4, sm: 8, md: 16, lg: 24 },
-  radius: { sm: 6, md: 12 },
-} as const;
+};
 
-export type Palette = typeof tokens.light;
+function rgbTriplet(hex: string): string {
+  const value = hex.replace('#', '');
+  return `${parseInt(value.slice(0, 2), 16)} ${parseInt(value.slice(2, 4), 16)} ${parseInt(value.slice(4, 6), 16)}`;
+}
+
+export function paletteFor(isDark: boolean): Palette {
+  return isDark ? palettes.dark : palettes.light;
+}
+
+export function themeVars(isDark: boolean) {
+  const palette = paletteFor(isDark);
+  return vars({
+    '--color-background': rgbTriplet(palette.background),
+    '--color-surface': rgbTriplet(palette.surface),
+    '--color-text': rgbTriplet(palette.text),
+    '--color-textMuted': rgbTriplet(palette.textMuted),
+    '--color-primary': rgbTriplet(palette.primary),
+    '--color-border': rgbTriplet(palette.border),
+    '--color-danger': rgbTriplet(palette.danger),
+  });
+}
 EOF
 ```
 
-Now the context. `mode` is explicit so a screen can offer "System / Light / Dark" later; `isDark`
-resolves `system` against the OS preference:
+The CSS variable names match the `tailwind.config.js` colours from Walkthrough 2. Now the context.
+`mode` is explicit so the Settings screen can offer "System / Light / Dark"; the effect pushes it
+into NativeWind's own hook, and the resolved `isDark` picks both the CSS variables and the JS
+palette:
 
 ```bash
 cd ~/Projects/PersonalProfileApp
 cat > src/theme/ThemeContext.tsx << 'EOF'
-import React, { createContext, useContext, useMemo, useState } from 'react';
-import { useColorScheme } from 'react-native';
-import { tokens, type Palette } from './tokens';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import { useColorScheme } from 'nativewind';
+import { paletteFor, themeVars, type Palette } from './tokens';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
@@ -286,16 +440,24 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const systemScheme = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
   const [mode, setMode] = useState<ThemeMode>('system');
-  const isDark = mode === 'system' ? systemScheme === 'dark' : mode === 'dark';
+  const isDark = mode === 'system' ? colorScheme === 'dark' : mode === 'dark';
+
+  useEffect(() => {
+    setColorScheme(mode);
+  }, [mode, setColorScheme]);
 
   const value = useMemo<ThemeContextValue>(
-    () => ({ mode, isDark, palette: isDark ? tokens.dark : tokens.light, setMode }),
+    () => ({ mode, isDark, palette: paletteFor(isDark), setMode }),
     [mode, isDark],
   );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>
+      <View style={[{ flex: 1 }, themeVars(isDark)]}>{children}</View>
+    </ThemeContext.Provider>
+  );
 }
 
 export function useTheme() {
@@ -308,9 +470,10 @@ export function useTheme() {
 EOF
 ```
 
-**Check:** both files exist; `npx tsc --noEmit` reports no errors in them (other files are not
-written yet, so a missing-module error for `./src/navigation/AppNavigator` later is expected until
-Walkthrough 4).
+**Check:** both files exist. `npx tsc --noEmit` may still complain about missing screen modules
+until Walkthroughs 4–6; errors *inside* these two files are real and must be fixed first. The
+`View` wrapper is deliberate: it is where the CSS variables are applied, so every classed screen
+below them sees the current palette.
 
 ---
 
@@ -350,10 +513,14 @@ A `type` alias (not an `interface`) is required here — React Navigation's type
 it. `CompositeScreenProps` is what lets a screen inside the tabs navigate to `EditProfile` in the
 parent stack while keeping both name and params checked.
 
-Now the navigators. The stack owns the Edit Profile flow; the tabs own the two peer destinations:
+Now the navigators. The stack owns the Edit Profile flow; the tabs own the two peer destinations.
+Note the JS style objects: React Navigation draws native bars, and it does not read `className`.
+The values come from `palette`, the same object that feeds `themeVars`:
 
 ```bash
 cd ~/Projects/PersonalProfileApp
+npx expo install @react-navigation/native @react-navigation/native-stack @react-navigation/bottom-tabs react-native-screens react-native-gesture-handler
+npx expo install expo-constants
 cat > src/navigation/AppNavigator.tsx << 'EOF'
 import React from 'react';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
@@ -435,14 +602,17 @@ EOF
 Spreading `DarkTheme`/`DefaultTheme` keeps the `fonts` and `dark` fields the `NavigationContainer`
 theme type expects — replacing the whole object with only `colors` would fail `tsc`.
 
-Finally, wire the providers at the root. The gesture-handler import must be the first line:
+Finally, wire the providers at the root. The gesture-handler import must be the first line and the
+global CSS import must precede the app code. `GestureHandlerRootView` is a third-party native view
+that may not forward `className`, so it keeps a plain inline `style={{ flex: 1 }}` — that is the
+third boundary described in Concept:
 
 ```bash
 cd ~/Projects/PersonalProfileApp
 cat > App.tsx << 'EOF'
 import 'react-native-gesture-handler';
+import './global.css';
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from './src/theme/ThemeContext';
@@ -450,7 +620,7 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 
 export default function App() {
   return (
-    <GestureHandlerRootView style={styles.root}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
           <AppNavigator />
@@ -459,17 +629,15 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-});
 EOF
 ```
 
 **Check:** if your project's entry file is `index.js` rather than `App.tsx`, put the
 `import 'react-native-gesture-handler';` line at the top of that file instead. Confirm the app
 launches after all three screen files exist (next two walkthroughs); until then, unresolved screen
-imports are expected.
+imports are expected. Read the React Navigation getting-started page for the major your trainer
+pinned — some versions require a small `MainActivity` / manifest change, and doing it now avoids a
+confusing crash later.
 
 ---
 
@@ -537,17 +705,15 @@ exposes that form, create one storage instance and use the same `getItem`/`setIt
 calls and the same key.
 
 Now the Profile screen. It reads storage on focus (so edits show up when you navigate back), uses
-safe-area insets for top padding, and demonstrates `Image`, `FlatList` and `Pressable`:
+NativeWind's safe-area utilities for padding, and demonstrates `Image`, `FlatList` and `Pressable`:
 
 ```bash
 cd ~/Projects/PersonalProfileApp
 cat > src/screens/ProfileScreen.tsx << 'EOF'
 import React, { useCallback, useState } from 'react';
-import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { MainTabScreenProps } from '../navigation/types';
-import { useTheme } from '../theme/ThemeContext';
 import { loadProfile } from '../storage/profileStorage';
 import { emptyProfile, type Profile } from '../types/profile';
 
@@ -558,8 +724,6 @@ const facts = [
 ];
 
 export function ProfileScreen({ navigation }: MainTabScreenProps<'ProfileTab'>) {
-  const { palette } = useTheme();
-  const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<Profile>(emptyProfile);
 
   useFocusEffect(
@@ -576,30 +740,23 @@ export function ProfileScreen({ navigation }: MainTabScreenProps<'ProfileTab'>) 
 
   return (
     <ScrollView
-      style={styles.fill}
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: insets.top + 16,
-          paddingBottom: insets.bottom + 24,
-          backgroundColor: palette.background,
-        },
-      ]}
+      className="flex-1"
+      contentContainerClassName="px-4 pt-safe-offset-4 pb-safe-offset-6 gap-2 bg-background"
       keyboardShouldPersistTaps="handled"
     >
       <Image
         source={require('../../assets/icon-prod.png')}
-        style={styles.avatar}
+        className="h-[88px] w-[88px] rounded-[44px] self-center"
         accessibilityRole="image"
         accessibilityLabel="Profile avatar"
       />
-      <Text accessibilityRole="header" style={[styles.name, { color: palette.text }]}>
+      <Text accessibilityRole="header" className="mt-3 text-2xl font-bold text-text">
         {profile.name || 'Your name'}
       </Text>
-      <Text style={[styles.line, { color: palette.textMuted }]}>
+      <Text className="text-base text-muted">
         {profile.email || 'Add an email in Edit profile'}
       </Text>
-      <Text style={[styles.line, { color: palette.textMuted }]}>
+      <Text className="text-base text-muted">
         {profile.phone || 'Add a phone number in Edit profile'}
       </Text>
 
@@ -608,12 +765,10 @@ export function ProfileScreen({ navigation }: MainTabScreenProps<'ProfileTab'>) 
         accessibilityRole="button"
         accessibilityLabel="Edit profile"
         accessibilityHint="Opens the edit profile form"
-        style={({ pressed }) => [
-          styles.button,
-          { backgroundColor: palette.primary, opacity: pressed ? 0.85 : 1 },
-        ]}
+        className="mt-4 items-center rounded-xl bg-primary px-4 py-3.5"
+        style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
       >
-        <Text style={styles.buttonText}>Edit profile</Text>
+        <Text className="text-base font-semibold text-white">Edit profile</Text>
       </Pressable>
 
       <FlatList
@@ -621,32 +776,23 @@ export function ProfileScreen({ navigation }: MainTabScreenProps<'ProfileTab'>) 
         keyExtractor={(item) => item.id}
         scrollEnabled={false}
         renderItem={({ item }) => (
-          <View style={[styles.row, { borderColor: palette.border }]}>
-            <Text style={{ color: palette.textMuted }}>{item.label}</Text>
-            <Text style={{ color: palette.text }}>{item.value}</Text>
+          <View className="flex-row justify-between border-b border-border py-3">
+            <Text className="text-muted">{item.label}</Text>
+            <Text className="text-text">{item.value}</Text>
           </View>
         )}
       />
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  fill: { flex: 1 },
-  content: { paddingHorizontal: 16, gap: 8 },
-  avatar: { width: 88, height: 88, borderRadius: 44, alignSelf: 'center' },
-  name: { fontSize: 24, fontWeight: '700', marginTop: 12 },
-  line: { fontSize: 16 },
-  button: { marginTop: 16, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, alignItems: 'center' },
-  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1 },
-});
 EOF
 ```
 
 `require('../../assets/icon-prod.png')` is the M03 production icon. If you do not have it, copy
-any PNG to `assets/icon-prod.png` first. `accessibilityRole="header"` on the name makes the screen
-readable as a structure, not a wall of text.
+any PNG to `assets/icon-prod.png` first. `contentContainerClassName` is the NativeWind-provided
+counterpart of `contentContainerStyle` for `ScrollView`; `pt-safe-offset-4` and
+`pb-safe-offset-6` expand to the measured inset plus 16 px / 24 px. `accessibilityRole="header"`
+on the name makes the screen readable as a structure, not a wall of text.
 
 Now the Edit Profile screen with validation, a typed ref chain, keyboard handling and announced
 errors:
@@ -661,14 +807,11 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
-  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../navigation/types';
-import { useTheme } from '../theme/ThemeContext';
 import { loadProfile, saveProfile } from '../storage/profileStorage';
 import type { Profile } from '../types/profile';
 
@@ -693,7 +836,6 @@ function phoneError(value: string): string | null {
 }
 
 export function EditProfileScreen({ navigation }: RootStackScreenProps<'EditProfile'>) {
-  const { palette } = useTheme();
   const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<Profile>({
     name: '',
@@ -702,7 +844,6 @@ export function EditProfileScreen({ navigation }: RootStackScreenProps<'EditProf
     bio: '',
   });
   const [errors, setErrors] = useState<Record<string, string | null>>({});
-  const [saved, setSaved] = useState(false);
 
   // Strict TypeScript API: typed refs via ComponentRef, never deep imports.
   const nameRef = useRef<React.ComponentRef<typeof TextInput>>(null);
@@ -716,7 +857,6 @@ export function EditProfileScreen({ navigation }: RootStackScreenProps<'EditProf
 
   function update(field: keyof Profile, value: string) {
     setProfile((current) => ({ ...current, [field]: value }));
-    setSaved(false);
   }
 
   async function handleSave() {
@@ -733,31 +873,25 @@ export function EditProfileScreen({ navigation }: RootStackScreenProps<'EditProf
       name: profile.name.trim(),
       email: profile.email.trim(),
     });
-    setSaved(true);
     navigation.goBack();
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.fill}
+      className="flex-1"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={insets.top}
     >
       <ScrollView
-        style={styles.fill}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: insets.top + 16,
-          paddingBottom: insets.bottom + 24,
-          backgroundColor: palette.background,
-        }}
+        className="flex-1"
+        contentContainerClassName="px-4 pt-safe-offset-4 pb-safe-offset-6 bg-background"
         keyboardShouldPersistTaps="handled"
       >
-        <Text accessibilityRole="header" style={[styles.header, { color: palette.text }]}>
+        <Text accessibilityRole="header" className="mb-4 text-[22px] font-bold text-text">
           Edit profile
         </Text>
 
-        <Text style={[styles.label, { color: palette.text }]}>Name</Text>
+        <Text className="mb-1 mt-3 text-base font-semibold text-text">Name</Text>
         <TextInput
           ref={nameRef}
           value={profile.name}
@@ -767,11 +901,15 @@ export function EditProfileScreen({ navigation }: RootStackScreenProps<'EditProf
           onSubmitEditing={() => emailRef.current?.focus()}
           accessibilityLabel="Name"
           accessibilityHint="Between 2 and 40 characters"
-          style={[styles.input, { borderColor: palette.border, color: palette.text, backgroundColor: palette.surface }]}
+          className="rounded-[10px] border border-border bg-surface p-3 text-base text-text"
         />
-        {errors.name ? <Text accessibilityRole="alert" style={{ color: palette.danger }}>{errors.name}</Text> : null}
+        {errors.name ? (
+          <Text accessibilityRole="alert" className="mt-1 text-sm text-danger">
+            {errors.name}
+          </Text>
+        ) : null}
 
-        <Text style={[styles.label, { color: palette.text }]}>Email</Text>
+        <Text className="mb-1 mt-3 text-base font-semibold text-text">Email</Text>
         <TextInput
           ref={emailRef}
           value={profile.email}
@@ -783,11 +921,15 @@ export function EditProfileScreen({ navigation }: RootStackScreenProps<'EditProf
           blurOnSubmit={false}
           onSubmitEditing={() => phoneRef.current?.focus()}
           accessibilityLabel="Email"
-          style={[styles.input, { borderColor: palette.border, color: palette.text, backgroundColor: palette.surface }]}
+          className="rounded-[10px] border border-border bg-surface p-3 text-base text-text"
         />
-        {errors.email ? <Text accessibilityRole="alert" style={{ color: palette.danger }}>{errors.email}</Text> : null}
+        {errors.email ? (
+          <Text accessibilityRole="alert" className="mt-1 text-sm text-danger">
+            {errors.email}
+          </Text>
+        ) : null}
 
-        <Text style={[styles.label, { color: palette.text }]}>Phone</Text>
+        <Text className="mb-1 mt-3 text-base font-semibold text-text">Phone</Text>
         <TextInput
           ref={phoneRef}
           value={profile.phone}
@@ -798,11 +940,15 @@ export function EditProfileScreen({ navigation }: RootStackScreenProps<'EditProf
           blurOnSubmit={false}
           onSubmitEditing={() => bioRef.current?.focus()}
           accessibilityLabel="Phone"
-          style={[styles.input, { borderColor: palette.border, color: palette.text, backgroundColor: palette.surface }]}
+          className="rounded-[10px] border border-border bg-surface p-3 text-base text-text"
         />
-        {errors.phone ? <Text accessibilityRole="alert" style={{ color: palette.danger }}>{errors.phone}</Text> : null}
+        {errors.phone ? (
+          <Text accessibilityRole="alert" className="mt-1 text-sm text-danger">
+            {errors.phone}
+          </Text>
+        ) : null}
 
-        <Text style={[styles.label, { color: palette.text }]}>Bio</Text>
+        <Text className="mb-1 mt-3 text-base font-semibold text-text">Bio</Text>
         <TextInput
           ref={bioRef}
           value={profile.bio}
@@ -810,7 +956,8 @@ export function EditProfileScreen({ navigation }: RootStackScreenProps<'EditProf
           multiline
           maxFontSizeMultiplier={1.5}
           accessibilityLabel="Bio"
-          style={[styles.input, styles.bio, { borderColor: palette.border, color: palette.text, backgroundColor: palette.surface }]}
+          className="min-h-[88px] rounded-[10px] border border-border bg-surface p-3 text-base text-text"
+          style={{ textAlignVertical: 'top' }}
         />
 
         <Pressable
@@ -818,50 +965,36 @@ export function EditProfileScreen({ navigation }: RootStackScreenProps<'EditProf
           accessibilityRole="button"
           accessibilityLabel="Save profile"
           accessibilityHint="Validates the form, saves it, and returns to the profile"
-          style={({ pressed }) => [
-            styles.button,
-            { backgroundColor: palette.primary, opacity: pressed ? 0.85 : 1 },
-          ]}
+          className="mt-6 items-center rounded-xl bg-primary px-4 py-3.5"
+          style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
         >
-          <Text style={styles.buttonText}>Save profile</Text>
+          <Text className="text-base font-semibold text-white">Save profile</Text>
         </Pressable>
 
         <Pressable
           onPress={() => Keyboard.dismiss()}
           accessibilityRole="button"
           accessibilityLabel="Dismiss keyboard"
-          style={styles.dismiss}
+          className="items-center py-3"
         >
-          <Text style={{ color: palette.textMuted }}>Done with keyboard</Text>
+          <Text className="text-muted">Done with keyboard</Text>
         </Pressable>
 
-        {saved ? (
-          <Text accessibilityRole="alert" style={{ color: palette.text }}>
-            Saved.
-          </Text>
-        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  fill: { flex: 1 },
-  header: { fontSize: 22, fontWeight: '700', marginBottom: 16 },
-  label: { fontSize: 16, fontWeight: '600', marginTop: 12, marginBottom: 4 },
-  input: { borderWidth: 1, borderRadius: 10, padding: 12, fontSize: 16 },
-  bio: { minHeight: 88, textAlignVertical: 'top' },
-  button: { marginTop: 24, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  dismiss: { paddingVertical: 12, alignItems: 'center' },
-});
 EOF
+npx tsc --noEmit
 ```
 
-**Check:** `npx tsc --noEmit` reports no errors. The three validators are deliberately simple and
-testable: name 2–40 trimmed characters, a basic email shape, and 7–15 digits after stripping
-punctuation. Write down one input each validator accepts and one it rejects; you will need them
-for Exercise 3 and for the write-up.
+**Check:** `npx tsc --noEmit` reports no errors *inside the files created so far*; an unresolved
+`SettingsScreen` import is expected until Walkthrough 6 creates that file. Notice the two deliberate
+`style` uses in an otherwise class-based screen: `textAlignVertical: 'top'` has no utility here, and
+pressed opacity is dynamic. That mixing is normal — NativeWind classes and `style` compose, with
+`style` winning on conflicts. The three validators are deliberately simple and testable: name 2–40 trimmed
+characters, a basic email shape, and 7–15 digits after stripping punctuation. Write down one input
+each validator accepts and one it rejects; you will need them for Exercise 3 and for the write-up.
 
 ---
 
@@ -871,9 +1004,8 @@ for Exercise 3 and for the write-up.
 cd ~/Projects/PersonalProfileApp
 cat > src/screens/SettingsScreen.tsx << 'EOF'
 import React from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { MainTabScreenProps } from '../navigation/types';
 import { useTheme, type ThemeMode } from '../theme/ThemeContext';
 import { clearProfile } from '../storage/profileStorage';
@@ -885,8 +1017,7 @@ const modes: { label: string; value: ThemeMode }[] = [
 ];
 
 export function SettingsScreen({}: MainTabScreenProps<'SettingsTab'>) {
-  const { palette, mode, setMode } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { mode, setMode } = useTheme();
   const version = Constants.expoConfig?.version ?? 'unknown';
 
   function confirmClear() {
@@ -904,20 +1035,13 @@ export function SettingsScreen({}: MainTabScreenProps<'SettingsTab'>) {
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        paddingHorizontal: 16,
-        paddingTop: insets.top + 16,
-        paddingBottom: insets.bottom + 24,
-        backgroundColor: palette.background,
-      }}
-    >
-      <Text accessibilityRole="header" style={[styles.header, { color: palette.text }]}>
+    <ScrollView contentContainerClassName="px-4 pt-safe-offset-4 pb-safe-offset-6 bg-background">
+      <Text accessibilityRole="header" className="mb-4 text-[22px] font-bold text-text">
         Settings
       </Text>
 
-      <Text style={[styles.label, { color: palette.text }]}>Theme</Text>
-      <View accessibilityRole="radiogroup" accessibilityLabel="Theme" style={styles.segment}>
+      <Text className="mb-2 text-base font-semibold text-text">Theme</Text>
+      <View accessibilityRole="radiogroup" accessibilityLabel="Theme" className="flex-row gap-2">
         {modes.map((item) => {
           const selected = item.value === mode;
           return (
@@ -927,20 +1051,19 @@ export function SettingsScreen({}: MainTabScreenProps<'SettingsTab'>) {
               accessibilityRole="radio"
               accessibilityLabel={`${item.label} theme`}
               accessibilityState={{ checked: selected }}
-              style={[
-                styles.segmentItem,
-                { backgroundColor: selected ? palette.primary : palette.surface },
-              ]}
+              className={`flex-1 items-center rounded-[10px] py-3 ${
+                selected ? 'bg-primary' : 'bg-surface'
+              }`}
             >
-              <Text style={{ color: selected ? '#FFFFFF' : palette.text }}>{item.label}</Text>
+              <Text className={selected ? 'text-white' : 'text-text'}>{item.label}</Text>
             </Pressable>
           );
         })}
       </View>
 
-      <View style={[styles.row, { borderColor: palette.border }]}>
-        <Text style={{ color: palette.textMuted }}>App version</Text>
-        <Text accessibilityLabel={`App version ${version}`} style={{ color: palette.text }}>
+      <View className="flex-row justify-between border-b border-border py-4">
+        <Text className="text-muted">App version</Text>
+        <Text accessibilityLabel={`App version ${version}`} className="text-text">
           {version}
         </Text>
       </View>
@@ -950,32 +1073,22 @@ export function SettingsScreen({}: MainTabScreenProps<'SettingsTab'>) {
         accessibilityRole="button"
         accessibilityLabel="Clear all data"
         accessibilityHint="Removes the saved profile after confirmation"
-        style={({ pressed }) => [
-          styles.danger,
-          { borderColor: palette.danger, opacity: pressed ? 0.85 : 1 },
-        ]}
+        className="mt-6 items-center rounded-xl border border-danger py-3.5"
+        style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
       >
-        <Text style={{ color: palette.danger, fontWeight: '600' }}>Clear all data</Text>
+        <Text className="font-semibold text-danger">Clear all data</Text>
       </Pressable>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { fontSize: 22, fontWeight: '700', marginBottom: 16 },
-  label: { fontSize: 16, fontWeight: '600', marginBottom: 8 },
-  segment: { flexDirection: 'row', gap: 8 },
-  segmentItem: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16, borderBottomWidth: 1 },
-  danger: { marginTop: 24, paddingVertical: 14, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
-});
 EOF
 npx tsc --noEmit
 ```
 
 **Check:** `npx tsc --noEmit` passes; the app launches with two tabs and an Edit Profile screen in
-the stack. Tapping **Dark** in Settings changes every screen immediately — that is the palette
-context doing its job. Tapping **Clear all data** asks for confirmation before touching storage.
+the stack. Tapping **Dark** in Settings changes every screen immediately — that is the CSS-variable
+palette and NativeWind's `setColorScheme` doing their job, with the navigator bars following the
+same `palette` object. Tapping **Clear all data** asks for confirmation before touching storage.
 
 ---
 
@@ -1000,6 +1113,8 @@ On each platform:
    The focused field stays visible on both platforms; tap **Done with keyboard** to dismiss it.
 2. **Safe areas:** on an iPhone with a dynamic island, confirm the avatar/header start below it;
    on Android in gesture navigation, confirm the bottom of Settings is not hidden by the nav bar.
+   The padding comes from `pt-safe-offset-4` / `pb-safe-offset-6`, which require the
+   `SafeAreaProvider` mounted in Walkthrough 4.
 3. **Window changes:** resize an iPhone window (iOS 27) or run a foldable AVD, then rotate or
    change the window and confirm the content re-pads instead of sitting under a cutout. On Android
    you can approximate a size change from the shell:
@@ -1011,8 +1126,10 @@ adb shell wm size reset
 ```
 
 **Check:** the keyboard never covers the active field, no content is obscured by insets, and a
-window-size change reflows the layout without a restart. Record what you observed in your notes —
-these observations become the write-up's "What tripped me up" and checkpoint evidence.
+window-size change reflows the layout without a restart. If classes suddenly stop applying,
+restart Metro with `npx expo start -c` — Babel and Metro config changes need a fresh cache. Record
+what you observed in your notes — these observations become the write-up's "What tripped me up" and
+checkpoint evidence.
 
 ---
 
@@ -1021,7 +1138,8 @@ these observations become the write-up's "What tripped me up" and checkpoint evi
 Enable the screen reader and walk all three screens in this order: Profile → Edit Profile →
 Settings. VoiceOver: Settings → General → Accessibility → VoiceOver on a device; Xcode's
 Accessibility Inspector in the simulator. TalkBack: Settings → Accessibility → TalkBack in the
-emulator (the RN docs give the exact commands).
+emulator (the RN docs give the exact commands). NativeWind changes how styles are written, not how
+`accessibilityLabel`, `accessibilityRole` and `accessibilityState` are announced.
 
 Write the reusable checklist with its result column filled in from your own run:
 
@@ -1060,31 +1178,39 @@ no screen-reader run is not evidence — record what the reader actually said.
 ```bash
 cd ~/Projects/PersonalProfileApp
 npx expo-doctor
+npx expo install --check
 npx tsc --noEmit
 git status --short
 ls -1 docs/evidence
 ```
 
-**Check:** `npx expo-doctor` reports no errors; `npx tsc --noEmit` passes; `git status` shows the
-intended `src/`, `App.tsx`, `expo-constants` dependency change and `docs/evidence/` only. Capture
-and keep:
+**Check:** `npx expo-doctor` reports no errors; `npx expo install --check` reports no version
+mismatches; `npx tsc --noEmit` passes; `git status` shows the intended NativeWind config files,
+`src/`, `App.tsx`, dependency changes and `docs/evidence/` only. Capture and keep:
 
 - a screenshot or short recording of Profile → Edit Profile → Settings navigation on **each**
   platform,
 - a before/after pair showing profile data still present after a force-quit and relaunch,
+- a light/dark pair taken after switching **Dark** in Settings, proving the classed screens and
+  the navigator bars change together,
 - the filled `docs/evidence/m04-accessibility-checklist.md` from Walkthrough 8.
 
 ---
 
 ## What This Walkthrough Showed You
 
-- How seven core components plus Flexbox and a token object produce a real three-screen UI.
+- How seven core components plus Flexbox and NativeWind utility classes produce a real three-screen UI.
+- How one token module feeds both Tailwind CSS variables and React Navigation's JS theme, so a
+  colour change reaches classed screens and native bars without touching screen files.
+- How NativeWind is configured in a bare Expo project (Babel preset, Metro wrapper, global CSS,
+  type reference) and where plain `style` objects remain necessary.
 - How a stack and two tabs split responsibilities, and how one `RootStackParamList` makes screen
   names and params compile-time checked.
-- How `SafeAreaProvider` + insets, `KeyboardAvoidingView`, return-key focus chaining and a
-  dismiss action keep a form usable across devices and window shapes.
-- How a theme context backed by `useColorScheme` switches the whole app's palette, and why text
-  scaling needs its own test.
+- How `SafeAreaProvider` + `*-safe-offset-*` utilities (and raw insets for numeric props),
+  `KeyboardAvoidingView`, return-key focus chaining and a dismiss action keep a form usable across
+  devices and window shapes.
+- How NativeWind's `useColorScheme()` / `setColorScheme()` plus our mode context switches the whole
+  palette, and why text scaling needs its own test.
 - How a guarded AsyncStorage module gives restart-persistent data without letting corrupt values
   crash a screen.
 - How to run a five-item accessibility checklist with a screen reader and keep the result for
@@ -1097,8 +1223,11 @@ and keep:
 1. **Break a route name on purpose.** In ProfileScreen change `navigation.navigate('EditProfile')`
    to `navigation.navigate('EditProfileTypo')`, run `npx tsc --noEmit`, and write down the exact
    error. Restore the name and confirm the error disappears. This is the payoff of typed params.
-2. **Change one token.** In `tokens.ts` change `light.primary` and `dark.primary`, relaunch, and
-   confirm every themed surface follows. Explain why no screen file needed editing.
+2. **Change one token.** In `src/theme/tokens.ts` change `light.primary` and `dark.primary`,
+   relaunch, and confirm every themed surface follows — classed buttons, input borders and the
+   navigator's active tint. Explain why no screen file needed editing. Then deliberately remove
+   `import './global.css';` from `App.tsx`, restart with `npx expo start -c`, note what breaks, and
+   restore the import.
 3. **Attack the validators.** Submit each of these and record what happens: a one-character name, a
    name over 40 characters, `name@example`, `12345`, and `(555) 010-1234`. Then add one rule of your
    own (for example, reject a bio over 280 characters) and prove it with an input.
@@ -1108,14 +1237,15 @@ and keep:
    relaunch, and confirm `loadProfile` falls back to `emptyProfile` instead of crashing. Restore a
    valid value afterwards.
 5. **Dark mode surprise hunt.** With **System** selected, switch the OS appearance while the app is
-   in the foreground. Then force Light and repeat. Note any screen that does not follow, and say
-   which palette lookup it missed.
+   in the foreground. Then force Light and repeat. Note any screen or native bar that does not
+   follow, and say whether it missed `themeVars`, a `text-*`/`bg-*` class, or the JS `navTheme`.
+   Confirm `userInterfaceStyle` is `automatic` in `app.json` before blaming the code.
 6. **Screen-reader sweep.** With VoiceOver or TalkBack on, complete the whole flow from Profile to
    a successful save and back. Note every element whose spoken name is unclear, then fix it with
    `accessibilityLabel` and re-run the sweep.
 7. **Window shape.** On a resized iPhone window or foldable emulator, take a screenshot in each
    window state and confirm the safe-area padding changes. Explain in two sentences why a fixed
-   top padding would fail here.
+   top padding would fail here, and why `pt-safe-offset-4` does not.
 
 ---
 
@@ -1123,69 +1253,71 @@ and keep:
 
 Answer these in your own words before checking the Appendix.
 
-1. Walk through building a screen from core components and Flexbox, and explain why the parent needs
-   a bounded height before a `ScrollView` can scroll.
+1. Walk through building a screen from core components, Flexbox and NativeWind utilities, and
+   explain why the parent needs a bounded height before a `ScrollView` can scroll.
 2. Describe how you would set up a stack plus two tabs so that screen names and params are
-   type-checked, and explain what breaks at compile time if a route is renamed.
-3. Explain how safe-area insets, `KeyboardAvoidingView` and a focus chain keep the Edit Profile form
-   usable when the keyboard opens and when the window changes shape.
-4. Describe how a theme context plus `useColorScheme` produces dark mode, and why dynamic text needs
-   a separate check even when the palette is correct.
+   type-checked, and explain what the React Navigation theme object still needs from the token
+   palette even though the screens use `className`.
+3. Explain how safe-area utilities and raw insets, `KeyboardAvoidingView` and a focus chain keep the
+   Edit Profile form usable when the keyboard opens and when the window changes shape.
+4. Describe how NativeWind's `useColorScheme()` plus the mode context switches the CSS variables
+   and the navigator palette, and why dynamic text needs a separate check even when the palette is
+   correct.
 5. Trace a profile value from the Edit Profile form through validation into AsyncStorage and back
    onto the Profile screen after a restart, and explain what the accessibility checklist proves
    about that flow.
 
 ### Understanding Checklist
 
-- [ ] I can name the seven core components used here and state the one rule about `Text` and the
-      one rule about `ScrollView` height.
-- [ ] I can explain which navigator owns which screens and how the param list types a `navigate`
-      call.
-- [ ] I can say where top and bottom padding come from and how the keyboard focus chain works.
-- [ ] I can explain how the palette reaches every screen and how I tested large text.
+- [ ] I can name the seven core components used here, state the one rule about `Text` and the one rule about `ScrollView` height, and give one NativeWind class for each.
+- [ ] I can explain which navigator owns which screens, how the param list types a `navigate` call, and why native bar colors are still JS values.
+- [ ] I can say where `pt-safe-offset-4` / `pb-safe-offset-6` come from, when a raw inset is still needed, and how the keyboard focus chain works.
+- [ ] I can explain how `themeVars` reaches every classed screen and how I tested large text.
 - [ ] I can trace validation → save → reload and list the five accessibility checks with results.
 
 ---
 
 ## Module Deliverable
 
-The Personal Profile App has Profile, Edit Profile and Settings screens; a native stack for the
-edit flow and bottom tabs for the two peer destinations; typed route params; a working dark/light
-theme toggle; a validated edit form; profile data that survives an app restart via AsyncStorage;
-and correct safe-area and keyboard behaviour on both platforms. `docs/evidence/` holds the filled
-accessibility checklist and the navigation, persistence and platform evidence. The checklist is the
-same five-item list you will reuse in M09 and the capstone.
+The Personal Profile App has Profile, Edit Profile and Settings screens styled with NativeWind
+utility classes over one token module; a native stack for the edit flow and bottom tabs for the two
+peer destinations; typed route params; a working dark/light theme toggle; a validated edit form;
+profile data that survives an app restart via AsyncStorage; and correct safe-area and keyboard
+behaviour on both platforms. `docs/evidence/` holds the filled accessibility checklist and the
+navigation, persistence, theme and platform evidence. The checklist is the same five-item list you
+will reuse in M09 and the capstone.
 
 ---
 
 ## Appendix — Self-Check Answers
 
-1. **Core components and bounded height.** Build the tree from `View` containers, `Text` for every
-   string, `Image` for the avatar, `Pressable` for buttons, `TextInput` for fields, `ScrollView` for
-   long content and `FlatList` for the facts list, styling it with `StyleSheet.create` values drawn
-   from one token object. Only `Text` may render text. A `ScrollView` fills its parent, so the
-   parent needs `flex: 1` or a fixed height; without a bound the scroll view grows with its content
-   and there is nothing to scroll.
-
-2. **Typed stack, tabs and compile-time failure.** Declare `RootStackParamList` (`Main`,
-   `EditProfile`) and `MainTabParamList` (`ProfileTab`, `SettingsTab`) as type aliases, pass each to
-   its `createXNavigator<T>()` call, and derive screen props with `NativeStackScreenProps` /
+1. **Core components, bounded height and utilities.** Build the tree from `View` containers, `Text`
+   for every string, `Image` for the avatar, `Pressable` for buttons, `TextInput` for fields,
+   `ScrollView` for long content and `FlatList` for the facts list. Style static properties with
+   classes such as `flex-1`, `gap-2`, `px-4` and `bg-background`. Only `Text` may render text. A
+   `ScrollView` fills its parent, so the parent needs `flex-1` or a fixed height; without a bound
+   the scroll view grows with its content and there is nothing to scroll.
+2. **Typed stack, tabs and the JS theme.** Declare `RootStackParamList` (`Main`, `EditProfile`) and
+   `MainTabParamList` (`ProfileTab`, `SettingsTab`) as type aliases, pass each to its
+   `createXNavigator<T>()` call, and derive screen props with `NativeStackScreenProps` /
    `CompositeScreenProps`. Because `navigate` is checked against those keys, renaming `EditProfile`
-   makes `npx tsc --noEmit` fail at the call site — before the user ever reaches that screen.
-
-3. **Insets, keyboard and focus chain.** `SafeAreaProvider` measures platform insets and
-   `useSafeAreaInsets()` supplies `top` and `bottom`, which become padding; they are recomputed when
-   a window is resized or a foldable changes shape, unlike a hard-coded constant.
-   `KeyboardAvoidingView` moves the form as the keyboard appears, `keyboardShouldPersistTaps="handled"`
-   lets taps reach the next field, `returnKeyType="next"` plus `onSubmitEditing` moves focus through
-   Name → Email → Phone → Bio using typed refs, and a **Done** action calls `Keyboard.dismiss()`.
-
-4. **Theme and dynamic text.** `useColorScheme()` reports the system preference; the theme context
-   resolves `system`/`light`/`dark` into `isDark`, picks `tokens.light` or `tokens.dark`, and
-   re-renders every consumer. Screens never branch on platform. Dynamic text is separate: fonts
-   scale with the OS setting by default, so you must raise the OS text size (and add
-   `maxFontSizeMultiplier` on tight rows) and re-check that nothing clips in either theme.
-
+   makes `npx tsc --noEmit` fail at the call site. React Navigation draws native bars through
+   `headerStyle` / `tabBarStyle` and a `NavigationContainer` theme object; those are plain JS
+   values, so we read them from the same `palette` in `tokens.ts`, not from `className`.
+3. **Insets, keyboard and focus chain.** `SafeAreaProvider` measures platform insets; NativeWind's
+   `pt-safe-offset-4` / `pb-safe-offset-6` turn them into padding that is recomputed when a window
+   is resized or a foldable changes shape, while `useSafeAreaInsets()` supplies raw numbers for
+   props such as `keyboardVerticalOffset`. `KeyboardAvoidingView` moves the form as the keyboard
+   appears, `keyboardShouldPersistTaps="handled"` lets taps reach the next field,
+   `returnKeyType="next"` plus `onSubmitEditing` moves focus through Name → Email → Phone → Bio
+   using typed refs, and a **Done** action calls `Keyboard.dismiss()`.
+4. **Theme and dynamic text.** NativeWind's `useColorScheme()` reports the scheme and
+   `setColorScheme()` applies our chosen `system` / `light` / `dark` mode. The resolved `isDark`
+   selects `themeVars(isDark)`, which sets the CSS variables used by `bg-background`, `text-text`
+   and `border-border`, and also selects the JS palette for React Navigation. Expo needs
+   `userInterfaceStyle: automatic` for the System option to follow the OS. Dynamic text is
+   separate: fonts scale with the OS setting by default, so you must raise the OS text size (and
+   add `maxFontSizeMultiplier` on tight rows) and re-check that nothing clips in either theme.
 5. **Persistence and what the checklist proves.** `handleSave` calls the three validators, stops if
    any returns an error, then `saveProfile` JSON-serialises the trimmed profile under one
    AsyncStorage key. On returning to Profile, `useFocusEffect` calls `loadProfile`, which parses the

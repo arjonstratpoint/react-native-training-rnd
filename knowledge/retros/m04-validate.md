@@ -25,3 +25,22 @@
 - **Dead link found and fixed.** A write-up "What I built" link pointed at the learner's local
   `docs/evidence/m04-accessibility-checklist.md` outside the repo and did not resolve. It is now an
   inline code path. See `knowledge/patterns/m04-module-guide-link-constraints.md`.
+
+## NativeWind conversion backlog
+
+- **`brief.md` still says NativeWind is optional.** The guide, write-up and checklist now teach it
+  as this cohort's default, but the brief was out of scope for the conversion. Reconcile the brief's
+  stack-constraints line in the next planner pass.
+- **SDK 58 compatibility is not explicitly confirmed upstream.** NativeWind's installation page
+  names SDK 57 as the newest confirmed release for v4.2.7. The guide therefore pins
+  `nativewind@4.2.7` (v5 is an RC), installs through `npx expo install`, and requires
+  `npx expo-doctor` + `npx expo install --check` before the learner proceeds. Confirm the resolved
+  versions for SDK 58 and freeze them for the next cohort.
+- **Keep the hybrid boundaries in mind for M09.** Static styling uses `className`, but dynamic
+  numbers (pressed opacity, raw safe-area insets, `textAlignVertical`) still use `style`, and
+  React Navigation's native bars still use JS style objects and a theme object from the same token
+  palette. Third-party native views such as `GestureHandlerRootView` may not forward `className`.
+- **Graph freshness.** The blast-radius query for the converted guide/write-up/checklist touched
+  only the expected markdown communities (M04, M01/M03/M05/M09 briefs/tasks and the knowledge
+  patterns); no code symbol depended on these files. `graphify-out/graph.json` was last built from
+  an earlier commit, so re-run the graph after the next committed change.
