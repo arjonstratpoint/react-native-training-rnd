@@ -12,6 +12,11 @@
 EVALUATE → PLAN → [approval gate] → APPLY → VALIDATE
 ```
 
+A trainer-directed open question ("ask trainer", "verify/confirm with trainer", "ask instructor",
+etc.) is its own hard gate at **every** step: the active step stops, asks the user for the answer in
+one grouped prompt, records it in `knowledge/rules/trainer-decisions.md`, and only then resumes.
+Never carry an unresolved question into the next step or into a tutorial doc.
+
 ## Steps
 
 ### Step 1 — EVALUATE

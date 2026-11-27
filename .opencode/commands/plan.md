@@ -6,6 +6,14 @@
 
 EVALUATE must have run first. If it hasn't, run `/evaluate <task>` before continuing.
 
+## Decision gate (before any blueprint)
+
+Read `knowledge/rules/trainer-decisions.md` and the EVALUATE summary's **Decisions** line. Every
+trainer-directed question in scope must have a recorded answer (or an explicit `DEFERRED` fallback).
+If any is unresolved, **STOP**: ask the user all of them in one grouped prompt with exact source
+locations, wait for the answers, record them as new `D-###` rows, then continue planning. Never
+carry "ask trainer" / "verify with trainer" phrasing into a plan — plan the concrete, recorded answer.
+
 ## Steps
 
 ### 1 — Blast radius check
@@ -57,13 +65,15 @@ Files created:   <list>
 Files modified:  <list>
 Files deleted:   <list>
 
+Decisions applied: <D-### ids from knowledge/rules/trainer-decisions.md; DEFERRED fallbacks>
 Blast radius:    <from the active knowledge graph — what else references these>
 God nodes touched: <list any with degree > 10>
 ```
 
 ### 3 — State constraints
 
-List which AGENTS.md rules and architecture decisions apply to this plan.
+List which AGENTS.md rules, architecture decisions, and `D-###` entries from
+`knowledge/rules/trainer-decisions.md` apply to this plan.
 
 ### 4 — Stop and wait
 

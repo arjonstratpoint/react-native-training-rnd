@@ -6,6 +6,15 @@
 
 A plan must be approved. If `/plan` has not run and been approved, stop and ask.
 
+## Decision gate (before writing anything)
+
+Read `knowledge/rules/trainer-decisions.md` and the PLAN's **Decisions applied** line first. Write
+the recorded answer wherever a source file had a trainer-directed open question — never the
+question itself, never "ask your trainer", and never an invented value. If a trainer-directed
+question has no recorded answer, **STOP**: ask the user for it (grouped with any others, with exact
+source locations), wait, record the answer as a new `D-###` row, and only then continue. A
+`DEFERRED` answer must be implemented as its recorded fallback.
+
 ## Steps
 
 ### 1 — Implement exactly what the plan says
@@ -13,6 +22,8 @@ A plan must be approved. If `/plan` has not run and been approved, stop and ask.
 - Follow the numbered steps from PLAN in order.
 - Reference AGENTS.md coding standards for every file written.
 - Do not add features, refactor unrelated code, or expand scope beyond the plan.
+- Replace every source "ask/confirm/verify with trainer" question with the concrete answer recorded
+  in `knowledge/rules/trainer-decisions.md`; no learner-facing file may keep the question open.
 - The deliverable is the instructional-material file
   `modules/<module-folder>/module-<module-no.>-<module-title>.md`. Write it as content a developer
   can follow and test — runnable commands and code, exercises, self-checks. No product code, no

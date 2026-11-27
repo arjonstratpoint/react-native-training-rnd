@@ -64,6 +64,15 @@ Verify item must trace to a concrete artifact — an untraceable `[x]` is a BLOC
 A dead URL or a command a learner cannot run is a BLOCKER — being followable *is* the artifact's
 job. Classify any failure in step 4.
 
+Then scan the guide, write-up and checklist for unresolved trainer-directed questions ("ask your
+trainer", "confirm/verify/check with trainer", "get from your trainer", "unless your trainer says",
+"trainer pins/decides", "ask the instructor", "TBD"/"to be confirmed"). Cross-check every one
+against `knowledge/rules/trainer-decisions.md`: it must either be gone (replaced by the concrete
+recorded answer) or, when recorded as `DEFERRED`, state the recorded fallback instead of the
+question. If a question has no recorded answer, **STOP**, ask the user for it in one grouped prompt
+with exact source locations, wait for the answer, and record it as a new `D-###` row before
+finishing validation. If the user answers, re-run this scan and the affected checks from step 2.
+
 ### 3 — Check against acceptance criteria
 
 First check the output-artifact criteria (these always apply):
@@ -77,6 +86,10 @@ First check the output-artifact criteria (these always apply):
     unchanged, its questions are answered in place, and no separate write-up.md (or variant) exists
 [ ] The module's tasks.md is updated in place — completed items ticked with evidence, structure
     preserved, and no item added, removed, or reworded
+[ ] No unresolved "ask trainer" / "verify with trainer" / "confirm with instructor" question remains
+    in any of the three artifacts — proven by the scan in step 2
+[ ] Every previously open question uses the answer from knowledge/rules/trainer-decisions.md
+    verbatim (or its DEFERRED fallback), consistent across guide, write-up and checklist
 ```
 
 Then load any task-specific acceptance criteria from the CSV task (or EVALUATE summary). For each
@@ -89,7 +102,8 @@ criterion:
 ### 4 — Classify all issues found
 
 ```
-[BLOCKER]   — prevents merge, must fix now
+[BLOCKER]   — prevents merge, must fix now (includes any unresolved trainer-directed question or
+             an answer that contradicts knowledge/rules/trainer-decisions.md)
 [FIX NOW]   — significant issue, fix before moving to next task
 [BACKLOG]   — minor, log to knowledge/retros/ and defer
 ```

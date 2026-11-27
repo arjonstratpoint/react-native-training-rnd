@@ -25,8 +25,34 @@ Note which communities/symbols and high-degree nodes are in the blast radius.
 2. **AGENTS.md** — load coding standards from project root if present.
 3. **Architecture doc** — scan `docs/arch-docs/` for the relevant section.
 4. **knowledge/** — check `knowledge/rules/`, `knowledge/patterns/`, `knowledge/prompts/dev/` for prior patterns.
+5. **Resolved decisions** — read `knowledge/rules/trainer-decisions.md` before looking at any module
+   content; it is the canonical answer set for previously open questions across all modules.
 
-### 3 — Fix the output artifact (always this shape)
+### 3 — Resolve trainer-directed open questions first (HARD GATE)
+
+Before summarizing, scan every source and target file in scope (`brief.md`, `tasks.md`,
+`write-up-template.md`, the module guide, arch docs) for unresolved decisions addressed to a person:
+"ask (your) trainer", "confirm/verify/check with (your) trainer", "get from your trainer", "ask the
+instructor", "unless your trainer says", "trainer pins/confirms/decides", "ask your mentor", plus
+"TBD" / "to be confirmed" / "Open Question #N" where the resolution belongs to a person.
+
+For each one:
+
+1. Look it up in `knowledge/rules/trainer-decisions.md` — the single source of truth for all
+   modules. If an answer already exists, use it verbatim everywhere. Do not re-ask and do not
+   reword it.
+2. If no answer exists, **STOP**. Do not output the summary, do not plan, and do not write any
+   module doc. Ask the user all unanswered questions in one grouped prompt, quoting each one's
+   exact source location, and wait for the answer.
+3. Once the user answers, add each answer to `knowledge/rules/trainer-decisions.md` as a new
+   `D-###` row (question, answer, modules it applies to — normally all future modules too — and
+   source/date), then resume EVALUATE with those answers.
+
+An answer of "ask the trainer" is not an answer. Keep asking until the value/decision is concrete.
+If the user explicitly says a question stays open, record it as `DEFERRED — <fallback>` and the
+module docs must state that fallback, never the question.
+
+### 4 — Fix the output artifact (always this shape)
 
 Every task in this repo produces **three Markdown files**: the module's instructional guide (which a
 developer can follow and test end to end), that same module's **filled-in write-up**, and that
@@ -61,7 +87,7 @@ module's **checklist** (ticked against the work as it lands). None is code, a pl
 - If the target file already exists, EVALUATE treats it as the artifact to review or extend — not
   a source to copy from.
 
-### 4 — Output this summary, nothing else
+### 5 — Output this summary, nothing else
 
 ```
 EVALUATE SUMMARY
@@ -73,10 +99,11 @@ Checklist:   modules/<folder>/tasks.md  (ticked item-by-item with evidence)
 Touches:     <files / modules / graph communities or symbols>
 Depends on:  <what must already exist>
 Constraints: <from AGENTS.md, arch doc, acceptance criteria>
+Decisions:   <D-### ids applied from knowledge/rules/trainer-decisions.md; DEFERRED fallbacks>
 Risk:        <god nodes or high-degree nodes in blast radius>
 ```
 
-### 5 — Stop
+### 6 — Stop
 
 Do NOT plan. Do NOT write code. End with:
 
