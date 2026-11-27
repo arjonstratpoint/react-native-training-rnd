@@ -256,6 +256,7 @@ native versions, then create the five config files.
 cd ~/Projects/PersonalProfileApp
 npx expo install nativewind@4.2.7 react-native-reanimated react-native-worklets react-native-safe-area-context
 npx expo install --dev tailwindcss@^3.4.17
+npx expo install babel-preset-expo
 touch global.css nativewind-env.d.ts
 cat > global.css << 'EOF'
 @tailwind base;

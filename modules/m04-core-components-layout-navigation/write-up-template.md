@@ -75,7 +75,8 @@ Here is the worked example using **Edit Profile**, the screen with the most movi
 
 1. **Install and configure NativeWind before writing any screens.** Use
    `npx expo install nativewind@4.2.7 react-native-reanimated react-native-worklets react-native-safe-area-context` and
-   `npx expo install --dev tailwindcss@^3.4.17`, then create `global.css` (three `@tailwind`
+   `npx expo install --dev tailwindcss@^3.4.17`, run `npx expo install babel-preset-expo` for the
+   Babel config, then create `global.css` (three `@tailwind`
    directives), `nativewind-env.d.ts` (the triple-slash reference plus `declare module '*.css';` so
    `import './global.css';` type-checks), `tailwind.config.js` (content globs, `nativewind/preset`,
    semantic colours as `rgb(var(--color-…) / <alpha-value>)`),
